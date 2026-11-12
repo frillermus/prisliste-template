@@ -1,56 +1,37 @@
-# Configurable price-list template
+# Prisliste og virksomhedsværktøjer
 
-A general-purpose price-list and receipt template. It is not tied to Auto Exotic or to a mechanic business. You can configure the business name, labels, currency, categories, and priced items in the administrator page. The default sample is generic; set `"preset": "mechanic"` and replace the example categories/items with workshop services and parts if you want to configure it for a mechanic business.
+Dansk prisliste med administrationspanel, varekatalog, medarbejderkonti og værktøjer til den daglige drift af en virksomhed.
 
-## Start without Supabase (default)
+## Kom i gang
 
-1. Publish `index.html` to GitHub Pages or another static host, or open it in a browser.
-2. On the first visit in that browser, create the local administrator account. The first screen asks for a name and a password of at least eight characters.
-3. Sign in, open **Administration**, and edit the JSON configuration. Local configuration and saved receipts are kept in that browser's `localStorage`; they are not shared across browsers or devices.
+1. Udgiv `index.html` via GitHub Pages eller en anden statisk webserver.
+2. Første gang oprettes administratorens konto.
+3. I **Administration** kan administratoren ændre virksomhedsoplysninger, udseende, rabatregler, visning af priser og varekatalog.
+4. Under **Medarbejdere** oprettes konti og tildeles adgang til relevante funktioner.
+5. Åbn `virksomhedsvaerktojer.html` for at bruge økonomioversigt, kundeopgaver, udgiftsregistrering og kundeoversigt.
 
-**Local-mode limitation:** the administrator account is a convenience for a single-browser installation, not server-side security. A person with access to the browser or its developer tools can access or change local data. Use Supabase mode for shared accounts and server-enforced access controls.
+## Virksomhedsværktøjer
 
-## Optional Supabase mode
+- **Økonomioversigt:** månedens gemte overslag, registrerede udgifter, et enkelt resultatoverslag og åbne opgaver.
+- **Kundeopgaver:** registrér kunde, kontaktoplysninger, køretøj eller emne, reference, dato, forventet pris, status og interne noter.
+- **Udgifter:** kategorisér udgifter til eksempelvis materialer, værktøj, leje, markedsføring og transport.
+- **Kunder:** søg i kunder fra gemte overslag og opgaver.
+- **CSV-eksport:** hent en regnearksvenlig oversigt over overslag, udgifter og kundeopgaver.
 
-Supabase is not contacted when both settings are blank. To opt in to shared login, configuration, and receipt data:
+Værktøjerne bruger samme webadresse som prislisten, så de kan læse prislistens overslag. Udgifter og kundeopgaver tilføjes i virksomhedsværktøjernes egne visninger.
 
-1. Create a Supabase project and run `supabase-shared-setup.sql` in its SQL editor.
-2. In `index.html`, fill both `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` near the start of the script. Use the publishable key (or legacy anon key), **never** the service-role/secret key.
-3. In Supabase **Authentication → Users**, create accounts. Public sign-up is intentionally not provided by this template.
-4. Assign the initial administrator from the Supabase SQL editor, replacing the UUID with the Auth user ID:
+## Medarbejderadgang
 
-   ```sql
-   insert into public.user_roles (user_id, role)
-   values ('AUTH-USER-UUID-HERE', 'admin')
-   on conflict (user_id) do update set role = 'admin';
-   ```
+Administrator kan give medarbejdere adgang til prislisten, overslag, historik, rabat, vagtregistrering, vagtoversigt, medarbejderadministration og virksomhedsindstillinger. Giv kun de rettigheder, medarbejderen har brug for.
 
-5. Create any other staff accounts in Supabase Auth and assign them the `employee` role. Supabase Row Level Security allows only admins to update the shared app configuration.
+## Valgfri Supabase
 
-## Configuration
+Supabase kan bruges til login og deling af indstillinger og overslag. Kør `supabase-shared-setup.sql` i Supabase SQL-editoren, og udfyld derefter både `SUPABASE_URL` og `SUPABASE_PUBLISHABLE_KEY` i `index.html`. Brug aldrig en service-role- eller hemmelig nøgle i browseren.
 
-The administration screen edits one JSON object. Example:
+Supabase-konti oprettes gennem Supabase Authentication. Individuel medarbejderadministration og de lokale virksomhedsværktøjer kræver server-side funktioner, før de kan deles sikkert mellem brugere/enheder.
 
-```json
-{
-  "businessName": "My business",
-  "tagline": "Price list",
-  "currency": "kr",
-  "customerLabel": "Customer",
-  "referenceLabel": "Reference",
-  "receiptLabel": "Estimate",
-  "preset": "general",
-  "categories": [
-    { "name": "Services", "items": [{ "name": "Example service", "price": 100 }] },
-    { "name": "Products", "items": [{ "name": "Example product", "price": 50 }] }
-  ]
-}
-```
+## Bemærkninger
 
-`preset` is descriptive only and can be `general`, `mechanic`, or another label. Categories and items determine what appears on the price list. Back up the configuration before substantial edits.
-
-## Security
-
-- Browser-only mode stores data locally and does not provide server-enforced account security.
-- Supabase mode uses only a publishable/anon key in the browser. RLS policies enforce access; never put a service-role key in the HTML.
-- Create Supabase users through the dashboard or a trusted server-side invitation flow. Do not enable client-side self-assignment of administrator privileges.
+- Uden Supabase bruges lokal konto og lokal lagring i browseren. De lokale medarbejderkonti er beregnet til en enkelt installation og giver ikke serverhåndhævet sikkerhed.
+- Økonomioversigtens resultat er beregnet ud fra gemte overslag minus registrerede udgifter; det er ikke et regnskab eller en skatteopgørelse.
+- Historiske poster bør sikkerhedskopieres, før browserdata slettes.
